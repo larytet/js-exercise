@@ -50,10 +50,11 @@ function createUrl(port) {
   return "https://127.0.0.1:"+port+"/index.html"
 }
 
+var requestTimeout = 500;
 requests = []
 ports.forEach(function(port) {
   var url = createUrl(port)
-  requests.push(new XMLHttpAsyncRequest(url, 500));
+  requests.push(new XMLHttpAsyncRequest(url, requestTimeout));
 });
 
 function printStatus()
@@ -66,7 +67,7 @@ function printStatus()
   });
 }
 
-setTimeout(printStatus, 3000)
+setTimeout(printStatus, requestTimeout+500)
 
 </script>
 
