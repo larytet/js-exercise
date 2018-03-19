@@ -8,11 +8,13 @@ var ports = [12381, 12382, 12383];
 <script>
 
 
+
 class XMLHttpAsyncRequest {
   constructor(url, timeout) {
     var xhr = new XMLHttpRequest();
   	xhr.open('GET', url, true);
-    xhr.requestUrl = url;
+    xhr._requestUrl = url;
+    xhr._result = XMLHttpAsyncRequest.Result.unknown;
     xhr.timeout = timeout;
   	xhr.onload = this.onload
   	xhr.ontimeout = this.ontimeout
@@ -21,6 +23,12 @@ class XMLHttpAsyncRequest {
     xhr.send(null);
     console.log("Send GET: "+url);
   }
+  static get Result() {
+    return {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
+  }
+  isNotError() {
+    return this._xhr
+  }
   onload() {
     console.log("Onload: "+this.response);
   }
@@ -28,7 +36,7 @@ class XMLHttpAsyncRequest {
     console.log("Ontimeout: status="+this.statusText+" total="+e.total+" lengthComputable="+e.lengthComputable);
   }
   onerror(e) {
-    console.log("Onerror: url="+this.requestUrl);
+    console.log("Onerror: url="+this._requestUrl);
   }
 }
 
