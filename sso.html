@@ -26,16 +26,19 @@ class XMLHttpAsyncRequest {
   static get Result() {
     return {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
   }
-  isNotError() {
-    return this._xhr
+  isError() {
+    return (this._xhr._result == XMLHttpAsyncRequest.Result.error);
   }
   onload() {
+    this._result = XMLHttpAsyncRequest.Result.ok;
     console.log("Onload: "+this.response);
   }
   ontimeout(e) {
+    this._result = XMLHttpAsyncRequest.Result.timeout;
     console.log("Ontimeout: status="+this.statusText+" total="+e.total+" lengthComputable="+e.lengthComputable);
   }
   onerror(e) {
+    this._result = XMLHttpAsyncRequest.Result.error;
     console.log("Onerror: url="+this._requestUrl);
   }
 }
