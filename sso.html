@@ -26,6 +26,9 @@ class XMLHttpAsyncRequest {
   static get Result() {
     return {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
   }
+  getUrl() {
+    return this._xhr._requestUrl;
+  }
   isError() {
     return (this._xhr._result == XMLHttpAsyncRequest.Result.error);
   }
@@ -47,11 +50,23 @@ function createUrl(port) {
   return "https://127.0.0.1:"+port+"/index.html"
 }
 
+requests = []
 ports.forEach(function(port) {
   var url = createUrl(port)
-  new XMLHttpAsyncRequest(url, 500);
+  requests.push(new XMLHttpAsyncRequest(url, 500));
 });
 
+function printStatus()
+{
+  requests.forEach(function(request) {
+    url = request.getUrl();
+    if (request.isError()) {
+      console.log("Request "+url+" failed");
+    }
+  });
+}
+
+setTimeout(printStatus, 3000)
 
 </script>
 
