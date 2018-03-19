@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html><body>
+
+<script>
+var ports = [12381, 12382, 12383];
+</script>
+
+<script>
+
+
+class XMLHttpAsyncRequest {
+  constructor(url, timeout) {
+    var xhr = new XMLHttpRequest();
+  	xhr.open('GET', url, true);
+    xhr.requestUrl = url;
+    xhr.timeout = timeout;
+  	xhr.onload = this.onload
+  	xhr.ontimeout = this.ontimeout
+  	xhr.onerror = this.onerror
+  	this._xhr = xhr;
+    xhr.send(null);
+    console.log("Send GET: "+url);
+  }
+  onload() {
+    console.log("Onload: "+this.response);
+  }
+  ontimeout(e) {
+    console.log("Ontimeout: status="+this.statusText+" total="+e.total+" lengthComputable="+e.lengthComputable);
+  }
+  onerror(e) {
+    console.log("Onerror: url="+this.requestUrl);
+  }
+}
+
+function createUrl(port) {
+  return "https://127.0.0.1:"+port+"/index.html"
+}
+
+ports.forEach(function(port) {
+  var url = createUrl(port)
+  new XMLHttpAsyncRequest(url, 500);
+});
+
+
+</script>
+
+</body></html>
+
+
+
+
