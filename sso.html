@@ -7,8 +7,6 @@ var ports = [12381, 12382, 12383];
 
 <script>
 
-
-
 class XMLHttpAsyncRequest {
   constructor(url, timeout) {
     var xhr = new XMLHttpRequest();
@@ -46,10 +44,6 @@ class XMLHttpAsyncRequest {
   }
 }
 
-function createUrl(port) {
-  return "https://127.0.0.1:"+port+"/index.html"
-}
-
 var requestTimeout = 500;
 requests = []
 ports.forEach(function(port) {
@@ -66,6 +60,24 @@ function printStatus()
     }
   });
 }
+
+// I have to support backward compatibility 
+// Try the legacy way of SSO
+var legacyWinIdScript = document.createElement('script');
+var legacyWinIdScriptUr = "http://127.0.0.1:12381/auth"; 
+legacyWinIdScript.onload = function () {
+  console.log("Got the legacy script from "+legacyWinIdScriptUr);
+}
+legacyWinIdScript.onerror = function () {
+  console.log("Failed to get the legacy script from "+legacyWinIdScriptUr);
+}
+legacyWinIdScript.src = legacyWinIdScriptUr
+document.head.appendChild(legacyWinIdScript);
+
+function createUrl(port) {
+  return "https://127.0.0.1:"+port+"/index.html"
+}
+
 
 setTimeout(printStatus, requestTimeout+500)
 
