@@ -50,7 +50,7 @@ function getOrigURLParamValue()
 function redirectLegacy()
 {
   function empty(str) {
-    res = (!str || !/[^\s]+/.test(str));
+    res = !str || !((/[^\s]+/).test(str));
     return res;
   }
 
