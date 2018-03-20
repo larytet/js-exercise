@@ -87,14 +87,18 @@ class XMLHttpAsyncRequest {
   }
   onerror(e) {
     this._result = XMLHttpAsyncRequest.Result.error;
-    console.log("Onerror: url="+this._requestUrl);
+    console.log("Onerror: url=" + this._requestUrl);
   }
 }
 
 class JsScriptLoader {
   constructor (url, onload) {
     var elementScript = document.createElement('script');
+    elementScript._requestUrl = url
     elementScript.onload = onload;
+    elementScript.onerror = function (e) {
+      console.log("Onerror: url=" + this._requestUrl);
+    }
     elementScript.src = url
     document.head.appendChild(elementScript);
   }
@@ -105,7 +109,8 @@ function createLocalUrl(port) {
 }
 
 function createRemoteUrl(ports) {
-  var url = "https://" + window.location.hostname + "/";
+  hostname = window.location.hostname
+  var url = "https://" + hostname;
   ports.forEach(function(port) {
     url += port.toString() + "."
   });
@@ -141,7 +146,7 @@ function printStatus()
   requests.forEach(function(request) {
     url = request.getUrl();
     if (request.isError()) {
-      console.log("Request "+url+" failed");
+      console.log("Knock "+url+" is probably succeeded");
     }
   });
 }
