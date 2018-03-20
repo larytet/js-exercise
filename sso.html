@@ -105,7 +105,6 @@ function createRemoteUrl(ports) {
 }
 
 // New style SSO involves knocking the local HTTP server
-var requestTimeout = 500;
 requests = []
 portsToKnock.forEach(function(port) {
   var url = createLocalUrl(port)
@@ -132,7 +131,7 @@ function printStatus()
   requests.forEach(function(request) {
     url = request.getUrl();
     var requestTime = request.getTime()
-    if ((requestTime > 100) || request.isTimeout()) {
+    if (request.isTimeout()) {
       var resultStr = "succeeded" 
     }
     else {
@@ -142,7 +141,7 @@ function printStatus()
   });
 }
 
-setTimeout(printStatus, requestTimeout+500)
+setTimeout(printStatus, 10*1000) // Let some time for the HTTP server to respond
 
 </script>
 
