@@ -7,7 +7,7 @@
 </head>
 
 <script>
-var ports = [12381, 12382, 12383];
+var portsToKnock = [12381, 12382, 12383];
 </script>
 
 <script language="javascript" type="text/javascript">
@@ -125,7 +125,7 @@ function createRemoteUrl(ports) {
 // New style SSO involves knocking the local HTTP server
 var requestTimeout = 500;
 requests = []
-ports.forEach(function(port) {
+portsToKnock.forEach(function(port) {
   var url = createLocalUrl(port)
   requests.push(new XMLHttpAsyncRequest(url, requestTimeout));
 });
@@ -139,7 +139,7 @@ new JsScriptLoader("http://127.0.0.1:12381/auth", function () {
   });
   
 // New style SSO - get the data from the server
-new JsScriptLoader(createRemoteUrl(ports), function () {
+new JsScriptLoader(createRemoteUrl(portsToKnock), function () {
     console.log("Got the script from " + winIdScriptUrl);
     // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
     redirectLegacy();
