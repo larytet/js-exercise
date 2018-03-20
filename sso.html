@@ -4,6 +4,7 @@
 <head>
   <title>SSO</title>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <!-- Compatibility mode 'egde' to enable console.log() -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 </head>
 
@@ -37,44 +38,45 @@ function redirect(href) {
   document.location.href = href;
 }
 
-function getOrigURLParamValue() 
+function getOrigURLParamValue()
 {
-	var orig_url_param = 'orig_url=';
-	var decodedUrlParameters = decodeURIComponent(location.search);
-	var decodedOrigParam = (new RegExp(orig_url_param + '.*').exec(decodedUrlParameters)||[,""])[0].replace(orig_url_param, '').replace(/\+/g, '%20')||null;
-	var encodedOrigParam = encodeURIComponent(decodedOrigParam);
-	return encodedOrigParam;
+  var orig_url_param = "orig_url=";
+  var decodedUrlParameters = decodeURIComponent(location.search);
+  var decodedOrigParam = (new RegExp(orig_url_param + '.*').exec(decodedUrlParameters)||[,""])[0].replace(orig_url_param, '').replace(/\+/g, '%20')||null;
+  var encodedOrigParam = encodeURIComponent(decodedOrigParam);
+  return encodedOrigParam;
 }
 
 function redirectLegacy()
 {
-  function empty(str)  {	
-  	return !str || !/[^\s]+/.test(str);
+  function empty(str) {
+    res = (!str || !/[^\s]+/.test(str));
+    return res;
   }
-  
+
   var encodedOrigUrl = getOrigURLParamValue();
-  
+
   try {
-  	if(typeof(gCtchLogonInfo) !== 'undefined') {	    	
-  		var modified_redirect_url = "https://" + window.location.hostname +'/EUP/transparent_login/?orig_url=' + encodedOrigUrl + '&winUserId=' +gCtchLogonInfo.winUserId ;
-  		if (!empty(gCtchLogonInfo.orgName)) {
-  			modified_redirect_url = modified_redirect_url.concat("&orgName=",gCtchLogonInfo.orgName);
-  		}
-  		if (!empty(gCtchLogonInfo.userName)) {
-  			modified_redirect_url = modified_redirect_url.concat("&userName=",gCtchLogonInfo.userName);
-  		}
-  		redirect(modified_redirect_url);
-  	}
-  	else {
-  		redirect("https://" + window.location.hostname + '/EUP/login?orig_url=' + encodedOrigUrl);
-  	}
+    if(typeof(gCtchLogonInfo) !== "undefined") {
+      var modified_redirect_url = "https://" + window.location.hostname +"/EUP/transparent_login/?orig_url=" + encodedOrigUrl + "&winUserId=" +gCtchLogonInfo.winUserId ;
+      if (!empty(gCtchLogonInfo.orgName)) {
+        modified_redirect_url = modified_redirect_url.concat("&orgName=",gCtchLogonInfo.orgName);
+      }
+      if (!empty(gCtchLogonInfo.userName)) {
+        modified_redirect_url = modified_redirect_url.concat("&userName=",gCtchLogonInfo.userName);
+      }
+      redirect(modified_redirect_url);
+    }
+    else {
+      redirect("https://" + window.location.hostname + "/EUP/login?orig_url=" + encodedOrigUrl);
+    }
   }
   catch(e) {
-  	redirect("https://" + window.location.hostname + '/EUP/login?orig_url='+ encodedOrigUrl);
+    redirect("https://" + window.location.hostname + "/EUP/login?orig_url="+ encodedOrigUrl);
   }
 };
 
-/// I can not use 'class' in IE 
+/// I can not use "class" in IE
 function JsScriptLoader(url, onload) {
   var obj = {};
   obj.Result = {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
@@ -82,15 +84,15 @@ function JsScriptLoader(url, onload) {
     return this._xhr._requestUrl;
   }
   obj.isTimeout = function() {
-    return (this._xhr._result == this.Result.timeout); 
+    return (this._xhr._result == this.Result.timeout);
   }
   obj.isUnknown = function() {
-    return (this._xhr._result == this.Result.unknown); 
+    return (this._xhr._result == this.Result.unknown);
   }
   obj.getTime = function() {
     return (this._xhr._timestampCompleted - this._timestampStarted);
   }
-  var elementScript = document.createElement('script');
+  var elementScript = document.createElement("script");
   elementScript._requestUrl = url
   obj._xhr = elementScript
   obj._xhr._result = obj.Result.unknown;
@@ -111,8 +113,8 @@ function JsScriptLoader(url, onload) {
   elementScript.src = url
   obj._timestampStarted = new Date().getTime();
   // Only Firefox: document.head.appendChild(elementScript);
-  document.getElementsByTagName('head')[0].appendChild(elementScript);
-  
+  document.getElementsByTagName("head")[0].appendChild(elementScript);
+
   return obj;
 }
 
@@ -139,14 +141,14 @@ for (var i = 0; i < portsToKnock.length; i++) {
   requests.push(JsScriptLoader(url, null));
 }
 
-// I have to support backward compatibility 
+// I have to support backward compatibility
 // Try the legacy way of SSO
 JsScriptLoader("http://127.0.0.1:12381/auth", function () {
     console.log("Got the legacy script from " + legacyWinIdScriptUrl);
     // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
     redirectLegacy();
   });
-  
+
 // New style SSO - get the data from the server
 JsScriptLoader(createRemoteUrl(portsToKnock), function () {
     console.log("Got the script from " + winIdScriptUrl);
@@ -167,7 +169,7 @@ function waitForKnocks(count)
     var url = request.getUrl();
     var requestTime = request.getTime()
     if (request.isUnknown()) {
-      knocksCompleted = false; 
+      knocksCompleted = false;
     }
   }
 
@@ -183,7 +185,7 @@ function waitForKnocks(count)
   }
 }
 
-setTimeout(waitForKnocks, knocksPollingPeriod, 0) 
+setTimeout(waitForKnocks, knocksPollingPeriod, 0)
 
 </script>
 
