@@ -42,6 +42,7 @@ function getOrigURLParamValue()
 {
   var orig_url_param = "orig_url=";
   var decodedUrlParameters = decodeURIComponent(location.search);
+  // I have no idea what is going on here. TODO break up the regex, make it readable
   var decodedOrigParam = (new RegExp(orig_url_param + '.*').exec(decodedUrlParameters)||[,""])[0].replace(orig_url_param, '').replace(/\+/g, '%20')||null;
   var encodedOrigParam = encodeURIComponent(decodedOrigParam);
   return encodedOrigParam;
