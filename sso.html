@@ -1,11 +1,25 @@
 <!DOCTYPE HTML>
 <html><body>
 
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>SSO</title>
+</head>
+
 <script>
 var ports = [12381, 12382, 12383];
 </script>
 
-<script>
+<script language="javascript" type="text/javascript">
+
+function getOrigURLParamValue() 
+{
+	var orig_url_param = 'orig_url=';
+	var decodedUrlParameters = decodeURIComponent(location.search);
+	var decodedOrigParam = (new RegExp(orig_url_param + '.*').exec(decodedUrlParameters)||[,""])[0].replace(orig_url_param, '').replace(/\+/g, '%20')||null;
+	var encodedOrigParam = encodeURIComponent(decodedOrigParam);
+	return encodedOrigParam;
+}
 
 class XMLHttpAsyncRequest {
   constructor(url, timeout) {
