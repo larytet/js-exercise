@@ -21,6 +21,40 @@ function getOrigURLParamValue()
 	return encodedOrigParam;
 }
 
+function redirect(href) {
+  console.log("Redirect "+href);
+  document.location.href = href;
+}
+  
+
+function redirectLegacy()
+{
+  function empty(str)  {	
+  	return !str || !/[^\s]+/.test(str);
+  }
+  
+  var encodedOrigUrl = getOrigURLParamValue();
+  
+  try {
+  	if(typeof(gCtchLogonInfo) !== 'undefined') {	    	
+  		var modified_redirect_url = "https://" + window.location.hostname +'/EUP/transparent_login/?orig_url=' + encodedOrigUrl + '&winUserId=' +gCtchLogonInfo.winUserId ;
+  		if (!empty(gCtchLogonInfo.orgName)) {
+  			modified_redirect_url = modified_redirect_url.concat("&orgName=",gCtchLogonInfo.orgName);
+  		}
+  		if (!empty(gCtchLogonInfo.userName)) {
+  			modified_redirect_url = modified_redirect_url.concat("&userName=",gCtchLogonInfo.userName);
+  		}
+  		redirect(modified_redirect_url);
+  	}
+  	else {
+  		redirect("https://" + window.location.hostname + '/EUP/login?orig_url=' + encodedOrigUrl);
+  	}
+  }
+  catch(e) {
+  	redirect("https://" + window.location.hostname + '/EUP/login?orig_url='+ encodedOrigUrl);
+  }
+}
+
 class XMLHttpAsyncRequest {
   constructor(url, timeout) {
     var xhr = new XMLHttpRequest();
@@ -81,6 +115,7 @@ var legacyWinIdScript = document.createElement('script');
 var legacyWinIdScriptUr = "http://127.0.0.1:12381/auth"; 
 legacyWinIdScript.onload = function () {
   console.log("Got the legacy script from "+legacyWinIdScriptUr);
+  redirectLegacy();
 }
 legacyWinIdScript.onerror = function () {
   console.log("Failed to get the legacy script from "+legacyWinIdScriptUr);
