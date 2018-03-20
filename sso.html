@@ -6,6 +6,20 @@
   <title>SSO</title>
 </head>
 
+<script language="javascript" type="text/javascript">
+
+/// The JS implements two different SSO flows: legacy and the new flow  
+/// Legacy SSO:
+///   - Load a JS from http://127.0.0.1:12381/auth
+///   - Use global variable gCtchLogonInfo to build the login URL
+///
+/// New SSO:
+///   - "Knock" the ports specified by the portsToKnock array
+///   - Knocks shall timeout 
+///   - Get the JS with gCtchLogonInfo from the server
+
+</script>
+
 <script>
 var portsToKnock = [12381, 12382, 12383, 12384];
 </script>
