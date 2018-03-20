@@ -104,12 +104,37 @@ function createLocalUrl(port) {
   return "https://127.0.0.1:"+port+"/index.html"
 }
 
+function createRemoteUrl(ports) {
+  var url = "https://" + window.location.hostname + "/";
+  ports.forEach(function(port) {
+    url += port.toString() + "."
+  });
+  url = url.substring(0, url.length - 1);
+  return url;
+}
+
+// New style SSO involves knocking the local HTTP server
 var requestTimeout = 500;
 requests = []
 ports.forEach(function(port) {
   var url = createLocalUrl(port)
   requests.push(new XMLHttpAsyncRequest(url, requestTimeout));
 });
+
+// I have to support backward compatibility 
+// Try the legacy way of SSO
+new JsScriptLoader("http://127.0.0.1:12381/auth", function () {
+    console.log("Got the legacy script from " + legacyWinIdScriptUrl);
+    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+    redirectLegacy();
+  });
+  
+// New style SSO - get the data from the server
+new JsScriptLoader(createRemoteUrl(ports), function () {
+    console.log("Got the script from " + winIdScriptUrl);
+    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+    redirectLegacy();
+  });
 
 function printStatus()
 {
@@ -120,31 +145,6 @@ function printStatus()
     }
   });
 }
-
-// I have to support backward compatibility 
-// Try the legacy way of SSO
-new JsScriptLoader("http://127.0.0.1:12381/auth", function () {
-    console.log("Got the legacy script from " + legacyWinIdScriptUrl);
-    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
-    redirectLegacy();
-  });
-  
-
-function createRemoteUrl(ports) {
-  var url = "https://" + window.location.hostname + "/";
-  ports.forEach(function(port) {
-    url += port.toString() + "."
-  });
-  url = url.substring(0, url.length - 1);
-  return url;
-}
-
-// New style SSO - get the data from the server
-new JsScriptLoader(createRemoteUrl(ports), function () {
-    console.log("Got the script from " + winIdScriptUrl);
-    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
-    redirectLegacy();
-  });
 
 setTimeout(printStatus, requestTimeout+500)
 
