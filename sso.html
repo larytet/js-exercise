@@ -17,6 +17,8 @@
 ///   - "Knock" the ports specified by the portsToKnock array
 ///   - Knocks shall timeout 
 ///   - Get the JS with gCtchLogonInfo from the server
+///
+/// Limitations - I can not use jQuery&friends
 
 </script>
 
@@ -66,46 +68,46 @@ function redirectLegacy()
   catch(e) {
   	redirect("https://" + window.location.hostname + '/EUP/login?orig_url='+ encodedOrigUrl);
   }
-}
+};
 
-class JsScriptLoader {
-  static get Result() {
-    return {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
-  }
-  getUrl() {
+function JsScriptLoader(url, onload) {
+  var obj = {};
+  obj.Result = {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
+  obj.getUrl = function() {
     return this._xhr._requestUrl;
   }
-  isTimeout() {
-    return (this._xhr._result == JsScriptLoader.Result.timeout); 
+  obj.isTimeout = function() {
+    return (this._xhr._result == this.Result.timeout); 
   }
-  isUnknown() {
-    return (this._xhr._result == JsScriptLoader.Result.unknown); 
+  obj.isUnknown = function() {
+    return (this._xhr._result == this.Result.unknown); 
   }
-  getTime() {
+  obj.getTime = function() {
     return (this._xhr._timestampCompleted - this._timestampStarted);
   }
-  constructor (url, onload=null) {
-    var elementScript = document.createElement('script');
-    elementScript._requestUrl = url
-    this._xhr = elementScript
-    this._xhr._result = JsScriptLoader.Result.unknown;
-    if (onload != null) {
-      elementScript.onload = onload;
-    }
-    elementScript.onerror = function (e) {
-      this._timestampCompleted = new Date().getTime();
-      this._result = JsScriptLoader.Result.error;
-      console.log("Onerror: url=" + this._requestUrl);
-    }
-    elementScript.ontimeout = function (e) {
-      this._timestampCompleted = new Date().getTime();
-      this._result = JsScriptLoader.Result.timeout;
-      console.log("Ontimeout: url=" + this._requestUrl);
-    }
-    elementScript.src = url
-    this._timestampStarted = new Date().getTime();
-    document.head.appendChild(elementScript);
+  var elementScript = document.createElement('script');
+  elementScript._requestUrl = url
+  obj._xhr = elementScript
+  obj._xhr._result = obj.Result.unknown;
+  elementScript._obj = obj;
+  if (onload != null) {
+    elementScript.onload = onload;
   }
+  elementScript.onerror = function (e) {
+    this._timestampCompleted = new Date().getTime();
+    this._result = this._obj.Result.error;
+    console.log("Onerror: url=" + this._requestUrl);
+  }
+  elementScript.ontimeout = function (e) {
+    this._timestampCompleted = new Date().getTime();
+    this._result = this._obj.Result.timeout;
+    console.log("Ontimeout: url=" + this._requestUrl);
+  }
+  elementScript.src = url
+  obj._timestampStarted = new Date().getTime();
+  document.head.appendChild(elementScript);
+  
+  return obj;
 }
 
 function createLocalUrl(port) {
@@ -115,30 +117,32 @@ function createLocalUrl(port) {
 function createRemoteUrl(ports) {
   hostname = window.location.hostname
   var url = "https://" + hostname;
-  ports.forEach(function(port) {
+  for (var i = 0; i < ports.length; i++) {
+    var port = ports[i];
     url += port.toString() + "."
-  });
+  }
   url = url.substring(0, url.length - 1);
   return url;
 }
 
 // New style SSO involves knocking the local HTTP server
 requests = []
-portsToKnock.forEach(function(port) {
+for (var i = 0; i < portsToKnock.length; i++) {
+  var port = portsToKnock[i];
   var url = createLocalUrl(port)
-  requests.push(new JsScriptLoader(url));
-});
+  requests.push(JsScriptLoader(url, null));
+}
 
 // I have to support backward compatibility 
 // Try the legacy way of SSO
-new JsScriptLoader("http://127.0.0.1:12381/auth", function () {
+JsScriptLoader("http://127.0.0.1:12381/auth", function () {
     console.log("Got the legacy script from " + legacyWinIdScriptUrl);
     // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
     redirectLegacy();
   });
   
 // New style SSO - get the data from the server
-new JsScriptLoader(createRemoteUrl(portsToKnock), function () {
+JsScriptLoader(createRemoteUrl(portsToKnock), function () {
     console.log("Got the script from " + winIdScriptUrl);
     // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
     redirectLegacy();
@@ -152,13 +156,14 @@ function waitForKnocks(count)
   var knocksCompleted = true;
   var expired = count >= knocksPollingTimeout/knocksPollingPeriod;
 
-  requests.forEach(function(request) {
-    url = request.getUrl();
+  for (var i = 0; i < requests.length; i++) {
+    var request = requests[i];
+    var url = request.getUrl();
     var requestTime = request.getTime()
     if (request.isUnknown()) {
       knocksCompleted = false; 
     }
-  });
+  }
 
   if (knocksCompleted) {
     console.log("Knocks probably succeeded, time " + (count*knocksPollingPeriod).toString() + "ms");
