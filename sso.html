@@ -12,6 +12,11 @@ var ports = [12381, 12382, 12383];
 
 <script language="javascript" type="text/javascript">
 
+function redirect(href) {
+  console.log("Redirect "+href);
+  document.location.href = href;
+}
+
 function getOrigURLParamValue() 
 {
 	var orig_url_param = 'orig_url=';
@@ -20,12 +25,6 @@ function getOrigURLParamValue()
 	var encodedOrigParam = encodeURIComponent(decodedOrigParam);
 	return encodedOrigParam;
 }
-
-function redirect(href) {
-  console.log("Redirect "+href);
-  document.location.href = href;
-}
-  
 
 function redirectLegacy()
 {
@@ -112,16 +111,36 @@ function printStatus()
 // I have to support backward compatibility 
 // Try the legacy way of SSO
 var legacyWinIdScript = document.createElement('script');
-var legacyWinIdScriptUr = "http://127.0.0.1:12381/auth"; 
+var legacyWinIdScriptUrl = "http://127.0.0.1:12381/auth"; 
 legacyWinIdScript.onload = function () {
-  console.log("Got the legacy script from "+legacyWinIdScriptUr);
+  console.log("Got the legacy script from " + legacyWinIdScriptUrl);
+  // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
   redirectLegacy();
 }
 legacyWinIdScript.onerror = function () {
-  console.log("Failed to get the legacy script from "+legacyWinIdScriptUr);
+  console.log("Failed to get the legacy script from " + legacyWinIdScriptUrl);
 }
-legacyWinIdScript.src = legacyWinIdScriptUr
+legacyWinIdScript.src = legacyWinIdScriptUrl
 document.head.appendChild(legacyWinIdScript);
+
+// New style SSO - get the data from the server
+var winIdScript = document.createElement('script');
+var winIdScriptUrl = "https://" + window.location.hostname + "/";
+ports.forEach(function(port) {
+  winIdScriptUrl += port.toString() + "."
+});
+winIdScriptUrl = winIdScriptUrl.substring(0, winIdScriptUrl.length - 1);
+winIdScript.onload = function () {
+  console.log("Got the script from " + winIdScriptUrl);
+  // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+  redirectLegacy();
+}
+winIdScript.onerror = function () {
+  console.log("Failed to get the script from " + winIdScriptUrl);
+}
+winIdScript.src = winIdScriptUrl
+document.head.appendChild(winIdScript);
+
 
 function createUrl(port) {
   return "https://127.0.0.1:"+port+"/index.html"
