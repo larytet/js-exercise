@@ -91,6 +91,15 @@ class XMLHttpAsyncRequest {
   }
 }
 
+class JsScriptLoader {
+  constructor (url, onload) {
+    var elementScript = document.createElement('script');
+    elementScript.onload = onload;
+    elementScript.src = url
+    document.head.appendChild(elementScript);
+  }
+}
+
 function createLocalUrl(port) {
   return "https://127.0.0.1:"+port+"/index.html"
 }
@@ -114,18 +123,12 @@ function printStatus()
 
 // I have to support backward compatibility 
 // Try the legacy way of SSO
-var legacyWinIdScript = document.createElement('script');
-var legacyWinIdScriptUrl = "http://127.0.0.1:12381/auth"; 
-legacyWinIdScript.onload = function () {
-  console.log("Got the legacy script from " + legacyWinIdScriptUrl);
-  // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
-  redirectLegacy();
-}
-legacyWinIdScript.onerror = function () {
-  console.log("Failed to get the legacy script from " + legacyWinIdScriptUrl);
-}
-legacyWinIdScript.src = legacyWinIdScriptUrl
-document.head.appendChild(legacyWinIdScript);
+new JsScriptLoader("http://127.0.0.1:12381/auth", function () {
+    console.log("Got the legacy script from " + legacyWinIdScriptUrl);
+    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+    redirectLegacy();
+  });
+  
 
 function createRemoteUrl(ports) {
   var url = "https://" + window.location.hostname + "/";
@@ -137,19 +140,11 @@ function createRemoteUrl(ports) {
 }
 
 // New style SSO - get the data from the server
-var winIdScript = document.createElement('script');
-var winIdScriptUrl = createRemoteUrl(ports);
-winIdScript.onload = function () {
-  console.log("Got the script from " + winIdScriptUrl);
-  // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
-  redirectLegacy();
-}
-winIdScript.onerror = function () {
-  console.log("Failed to get the script from " + winIdScriptUrl);
-}
-winIdScript.src = winIdScriptUrl
-document.head.appendChild(winIdScript);
-
+new JsScriptLoader(createRemoteUrl(ports), function () {
+    console.log("Got the script from " + winIdScriptUrl);
+    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+    redirectLegacy();
+  });
 
 setTimeout(printStatus, requestTimeout+500)
 
