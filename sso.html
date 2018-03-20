@@ -65,6 +65,7 @@ class XMLHttpAsyncRequest {
   	xhr.ontimeout = this.ontimeout
   	xhr.onerror = this.onerror
   	this._xhr = xhr;
+    this._timestampStarted = new Date().getTime();
     xhr.send(null);
     console.log("Send GET: "+url);
   }
@@ -78,14 +79,17 @@ class XMLHttpAsyncRequest {
     return (this._xhr._result == XMLHttpAsyncRequest.Result.error);
   }
   onload() {
+    this._timestampCompleted = new Date().getTime();
     this._result = XMLHttpAsyncRequest.Result.ok;
     console.log("Onload: "+this.response);
   }
   ontimeout(e) {
+    this._timestampCompleted = new Date().getTime();
     this._result = XMLHttpAsyncRequest.Result.timeout;
     console.log("Ontimeout: status="+this.statusText+" total="+e.total+" lengthComputable="+e.lengthComputable);
   }
   onerror(e) {
+    this._timestampCompleted = new Date().getTime();
     this._result = XMLHttpAsyncRequest.Result.error;
     console.log("Onerror: url=" + this._requestUrl);
   }
@@ -144,9 +148,17 @@ new JsScriptLoader(createRemoteUrl(ports), function () {
 function printStatus()
 {
   requests.forEach(function(request) {
+    var xhr = request._xhr
+    var requestTime = xhr._timestampCompleted - request._timestampStarted
     url = request.getUrl();
     if (request.isError()) {
-      console.log("Knock "+url+" is probably succeeded");
+      if (requestTime < 40 ){
+        var resultStr = "succeeded" 
+      }
+      else {
+        var resultStr = "failed" 
+      }
+      console.log("Knock " + url + " is probably " + resultStr + " , time " + requestTime.toString() + "ms");
     }
   });
 }
