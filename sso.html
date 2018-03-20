@@ -7,7 +7,7 @@
 </head>
 
 <script>
-var portsToKnock = [12381, 12382, 12383];
+var portsToKnock = [12381, 12382, 12383, 12384];
 </script>
 
 <script language="javascript" type="text/javascript">
@@ -54,56 +54,38 @@ function redirectLegacy()
   }
 }
 
-class XMLHttpAsyncRequest {
-  constructor(url, timeout) {
-    var xhr = new XMLHttpRequest();
-  	xhr.open('GET', url, true);
-    xhr._requestUrl = url;
-    xhr._result = XMLHttpAsyncRequest.Result.unknown;
-    xhr.timeout = timeout;
-  	xhr.onload = this.onload
-  	xhr.ontimeout = this.ontimeout
-  	xhr.onerror = this.onerror
-  	this._xhr = xhr;
-    this._timestampStarted = new Date().getTime();
-    xhr.send(null);
-    console.log("Send GET: "+url);
-  }
+class JsScriptLoader {
   static get Result() {
     return {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
   }
   getUrl() {
     return this._xhr._requestUrl;
   }
-  isError() {
-    return (this._xhr._result == XMLHttpAsyncRequest.Result.error);
+  isTimeout() {
+    return (this._xhr._result == JsScriptLoader.Result.timeout); 
   }
-  onload() {
-    this._timestampCompleted = new Date().getTime();
-    this._result = XMLHttpAsyncRequest.Result.ok;
-    console.log("Onload: "+this.response);
+  getTime() {
+    return (this._xhr._timestampCompleted - this._timestampStarted);
   }
-  ontimeout(e) {
-    this._timestampCompleted = new Date().getTime();
-    this._result = XMLHttpAsyncRequest.Result.timeout;
-    console.log("Ontimeout: status="+this.statusText+" total="+e.total+" lengthComputable="+e.lengthComputable);
-  }
-  onerror(e) {
-    this._timestampCompleted = new Date().getTime();
-    this._result = XMLHttpAsyncRequest.Result.error;
-    console.log("Onerror: url=" + this._requestUrl);
-  }
-}
-
-class JsScriptLoader {
-  constructor (url, onload) {
+  constructor (url, onload=null) {
     var elementScript = document.createElement('script');
     elementScript._requestUrl = url
-    elementScript.onload = onload;
+    this._xhr = elementScript
+    if (onload != null) {
+      elementScript.onload = onload;
+    }
     elementScript.onerror = function (e) {
+      this._timestampCompleted = new Date().getTime();
+      this._result = JsScriptLoader.Result.error;
       console.log("Onerror: url=" + this._requestUrl);
     }
+    elementScript.ontimeout = function (e) {
+      this._timestampCompleted = new Date().getTime();
+      this._result = JsScriptLoader.Result.timeout;
+      console.log("Ontimeout: url=" + this._requestUrl);
+    }
     elementScript.src = url
+    this._timestampStarted = new Date().getTime();
     document.head.appendChild(elementScript);
   }
 }
@@ -127,7 +109,7 @@ var requestTimeout = 500;
 requests = []
 portsToKnock.forEach(function(port) {
   var url = createLocalUrl(port)
-  requests.push(new XMLHttpAsyncRequest(url, requestTimeout));
+  requests.push(new JsScriptLoader(url));
 });
 
 // I have to support backward compatibility 
@@ -148,18 +130,15 @@ new JsScriptLoader(createRemoteUrl(portsToKnock), function () {
 function printStatus()
 {
   requests.forEach(function(request) {
-    var xhr = request._xhr
-    var requestTime = xhr._timestampCompleted - request._timestampStarted
     url = request.getUrl();
-    if (request.isError()) {
-      if (requestTime < 40 ){
-        var resultStr = "succeeded" 
-      }
-      else {
-        var resultStr = "failed" 
-      }
-      console.log("Knock " + url + " is probably " + resultStr + " , time " + requestTime.toString() + "ms");
+    var requestTime = request.getTime()
+    if ((requestTime > 100) || request.isTimeout()) {
+      var resultStr = "succeeded" 
     }
+    else {
+      var resultStr = "failed" 
+    }
+    console.log("Knock " + url + " is probably " + resultStr + " , time " + requestTime.toString() + "ms");
   });
 }
 
