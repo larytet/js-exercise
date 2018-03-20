@@ -38,9 +38,13 @@ function redirect(href) {
   document.location.href = href;
 }
 
+// getOrigURLParamValue("http://127.0.0.1/hello?orig_url=tes t1?test2=0") will magically return
+// "tes%20t1%3Ftest2%3D0"
 function getOrigURLParamValue()
 {
   var orig_url_param = "orig_url=";
+  // location.search is a query part of the URL - "?...."
+  // decodeURIComponent() handles UTF-8
   var decodedUrlParameters = decodeURIComponent(location.search);
   // I have no idea what is going on here. TODO break up the regex, make it readable
   var decodedOrigParam = (new RegExp(orig_url_param + '.*').exec(decodedUrlParameters)||[,""])[0].replace(orig_url_param, '').replace(/\+/g, '%20')||null;
