@@ -70,6 +70,7 @@ function redirectLegacy()
   }
 };
 
+/// I can not use 'class' in IE 
 function JsScriptLoader(url, onload) {
   var obj = {};
   obj.Result = {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
@@ -105,7 +106,8 @@ function JsScriptLoader(url, onload) {
   }
   elementScript.src = url
   obj._timestampStarted = new Date().getTime();
-  document.head.appendChild(elementScript);
+  // Only Firefox: document.head.appendChild(elementScript);
+  document.getElementsByTagName('head')[0].appendChild(elementScript);
   
   return obj;
 }
@@ -117,7 +119,7 @@ function createLocalUrl(port) {
 function createRemoteUrl(ports) {
   hostname = window.location.hostname
   var url = "https://" + hostname;
-  for (var i = 0; i < ports.length; i++) {
+  for (var i = 0; i < ports.length; i++) {   // I can not use foreach()
     var port = ports[i];
     url += port.toString() + "."
   }
