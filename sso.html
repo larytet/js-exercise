@@ -91,10 +91,14 @@ class XMLHttpAsyncRequest {
   }
 }
 
+function createLocalUrl(port) {
+  return "https://127.0.0.1:"+port+"/index.html"
+}
+
 var requestTimeout = 500;
 requests = []
 ports.forEach(function(port) {
-  var url = createUrl(port)
+  var url = createLocalUrl(port)
   requests.push(new XMLHttpAsyncRequest(url, requestTimeout));
 });
 
@@ -123,13 +127,18 @@ legacyWinIdScript.onerror = function () {
 legacyWinIdScript.src = legacyWinIdScriptUrl
 document.head.appendChild(legacyWinIdScript);
 
+function createRemoteUrl(ports) {
+  var url = "https://" + window.location.hostname + "/";
+  ports.forEach(function(port) {
+    url += port.toString() + "."
+  });
+  url = url.substring(0, url.length - 1);
+  return url;
+}
+
 // New style SSO - get the data from the server
 var winIdScript = document.createElement('script');
-var winIdScriptUrl = "https://" + window.location.hostname + "/";
-ports.forEach(function(port) {
-  winIdScriptUrl += port.toString() + "."
-});
-winIdScriptUrl = winIdScriptUrl.substring(0, winIdScriptUrl.length - 1);
+var winIdScriptUrl = createRemoteUrl(ports);
 winIdScript.onload = function () {
   console.log("Got the script from " + winIdScriptUrl);
   // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
@@ -140,11 +149,6 @@ winIdScript.onerror = function () {
 }
 winIdScript.src = winIdScriptUrl
 document.head.appendChild(winIdScript);
-
-
-function createUrl(port) {
-  return "https://127.0.0.1:"+port+"/index.html"
-}
 
 
 setTimeout(printStatus, requestTimeout+500)
