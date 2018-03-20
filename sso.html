@@ -78,6 +78,9 @@ class JsScriptLoader {
   isTimeout() {
     return (this._xhr._result == JsScriptLoader.Result.timeout); 
   }
+  isUnknown() {
+    return (this._xhr._result == JsScriptLoader.Result.unknown); 
+  }
   getTime() {
     return (this._xhr._timestampCompleted - this._timestampStarted);
   }
@@ -85,6 +88,7 @@ class JsScriptLoader {
     var elementScript = document.createElement('script');
     elementScript._requestUrl = url
     this._xhr = elementScript
+    this._xhr._result = JsScriptLoader.Result.unknown;
     if (onload != null) {
       elementScript.onload = onload;
     }
@@ -140,22 +144,35 @@ new JsScriptLoader(createRemoteUrl(portsToKnock), function () {
     redirectLegacy();
   });
 
-function printStatus()
+var knocksPollingPeriod = 50; //ms
+var knocksPollingTimeout = 10*1000; //ms
+
+function waitForKnocks(count)
 {
+  var knocksCompleted = true;
+  var expired = count >= knocksPollingTimeout/knocksPollingPeriod;
+
   requests.forEach(function(request) {
     url = request.getUrl();
     var requestTime = request.getTime()
-    if (request.isTimeout()) {
-      var resultStr = "succeeded" 
+    if (request.isUnknown()) {
+      knocksCompleted = false; 
     }
-    else {
-      var resultStr = "failed" 
-    }
-    console.log("Knock " + url + " is probably " + resultStr + " , time " + requestTime.toString() + "ms");
   });
+
+  if (knocksCompleted) {
+    console.log("Knocks probably succeeded, time " + (count*knocksPollingPeriod).toString() + "ms");
+    return
+  }
+  if (!expired) {
+    setTimeout(waitForKnocks, knocksPollingPeriod, count+1)
+  }
+  else {
+    console.log("Knocks failed, time " + (count*knocksPollingPeriod).toString() + "ms");
+  }
 }
 
-setTimeout(printStatus, 10*1000) // Let some time for the HTTP server to respond
+setTimeout(waitForKnocks, knocksPollingPeriod, 0) 
 
 </script>
 
