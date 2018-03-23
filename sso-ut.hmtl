@@ -28,11 +28,9 @@ function redirectLegacy()
     return res;
   }
 
-  var encodedOrigUrl = getOrigURLParamValue();
-
   try {
     if(typeof(gCtchLogonInfo) !== "undefined") {
-      var t = document.createTextNode(gCtchLogonInfo.winUserId+" "+gCtchLogonInfo.orgName+" "+gCtchLogonInfo.userName);
+      var t = document.createTextNode("winUserId="+gCtchLogonInfo.winUserId+" orgname="+gCtchLogonInfo.orgName+" userName="+gCtchLogonInfo.userName);
       document.body.appendChild(t);    
     }
     else {
@@ -94,7 +92,8 @@ function JsScriptLoader(url, onload) {
 
 // I have to support backward compatibility
 // Try the legacy way of SSO
-JsScriptLoader("http://127.0.0.1:12381/auth", function () {
+legacyWinIdScriptUrl = "http://127.0.0.1:12381/auth" 
+JsScriptLoader(legacyWinIdScriptUrl, function () {
     console.log("Got the legacy script from " + legacyWinIdScriptUrl);
     // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
     redirectLegacy();
