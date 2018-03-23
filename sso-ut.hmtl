@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+<head>
+  <title>sso login check</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <!-- Compatibility mode 'egde' to enable console.log() -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta http-equiv="CACHE-CONTROL" content="NO-CACHE" />
+  <meta http-equiv="PRAGMA" content="NO-CACHE" />
+  <meta http-equiv="EXPIRES" content="0" />
+</head>
+
+<body>
+<script>
+
+/// The JS implements unit test for the server side SSO functionality  
+/// in legacy mode
+</script>
+
+<script>
+
+
+function redirectLegacy()
+{
+  function empty(str) {
+    res = !str || !((/[^\s]+/).test(str));
+    return res;
+  }
+
+  var encodedOrigUrl = getOrigURLParamValue();
+
+  try {
+    if(typeof(gCtchLogonInfo) !== "undefined") {
+      var t = document.createTextNode(gCtchLogonInfo.winUserId+" "+gCtchLogonInfo.orgName+" "+gCtchLogonInfo.userName);
+      document.body.appendChild(t);    
+    }
+    else {
+      var t = document.createTextNode("gCtchLogonInfo is undefined");
+      document.body.appendChild(t);    
+    }
+  }
+  catch(e) {
+      var t = document.createTextNode("Failed to check gCtchLogonInfo");
+      document.body.appendChild(t);    
+  }
+};
+
+/// I can not use "class" in IE
+function JsScriptLoader(url, onload) {
+  var obj = {};
+  obj.Result = {"unknown": 0, "error": 1, "timeout": 2, "ok": 3};
+  obj.getUrl = function() {
+    return this._xhr._requestUrl;
+  }
+  obj.isTimeout = function() {
+    return (this._xhr._result == this.Result.timeout);
+  }
+  obj.isUnknown = function() {
+    return (this._xhr._result == this.Result.unknown);
+  }
+  obj.getTime = function() {
+    return (this._xhr._timestampCompleted - this._timestampStarted);
+  }
+  var elementScript = document.createElement("script");
+  elementScript._requestUrl = url
+  obj._xhr = elementScript
+  obj._xhr._result = obj.Result.unknown;
+  elementScript._obj = obj;
+  if (onload != null) {
+    elementScript.onload = onload;
+  }
+  elementScript.onerror = function (e) {
+    this._timestampCompleted = new Date().getTime();
+    this._result = this._obj.Result.error;
+    var msg = "Onerror: url=" + this._requestUrl
+    console.log(msg);
+    document.body.appendChild(document.createTextNode(msg));
+  }
+  elementScript.ontimeout = function (e) {
+    this._timestampCompleted = new Date().getTime();
+    this._result = this._obj.Result.timeout;
+    var msg = "Ontimeout: url=" + this._requestUrl
+    console.log(msg);
+    document.body.appendChild(document.createTextNode(msg));
+  }
+  elementScript.src = url
+  obj._timestampStarted = new Date().getTime();
+  // Only Firefox: document.head.appendChild(elementScript);
+  document.getElementsByTagName("head")[0].appendChild(elementScript);
+
+  return obj;
+}
+
+// I have to support backward compatibility
+// Try the legacy way of SSO
+JsScriptLoader("http://127.0.0.1:12381/auth", function () {
+    console.log("Got the legacy script from " + legacyWinIdScriptUrl);
+    // I expect a JS which contains gCtchLogonInfo = {"winUserId": id, "orgName": orgName, "userName": userName}
+    redirectLegacy();
+  });
+
+
+</script>
+
+</body></html>
